@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # 1. FastAPIバックエンドサービス
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000" # ホスト側の8000番ポートに接続
+    depends_on:
+      - db
+    environment:
+      # DB接続情報（dbサービス名を使用）
+      DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+      SECRET_KEY: "your-super-secret-key" # 認証用
+
+  # 2. PostgreSQLデータベースサービス
+  db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    # ports:
+    #   - "5432:5432" # ホストからアクセスしたい場合のみ有効にする
+
+volumes:
+  postgres_data:
