@@ -6,17 +6,20 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    # --reload を使うことで、ホスト側でコードを変更したらコンテナ内も自動でリロードされます
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./backend:/app
+      - ./backend:/app  # ホストの /backend をコンテナの /app にマウント
     ports:
-      - "8000:8000" # ホスト側の8000番ポートに接続
+      - "8000:8000"     # ホスト側の8000番ポートに接続
     depends_on:
       - db
+    # .envファイルから環境変数を読み込む
+    env_file:
+      - .env
     environment:
-      # DB接続情報（dbサービス名を使用）
+      # DB接続情報 (main.py の設定と一致させる)
       DATABASE_URL: postgresql://user:password@db:5432/mydatabase
-      SECRET_KEY: "your-super-secret-key" # 認証用
 
   # 2. PostgreSQLデータベースサービス
   db:
@@ -28,8 +31,6 @@ services:
       POSTGRES_DB: mydatabase
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    # ports:
-    #   - "5432:5432" # ホストからアクセスしたい場合のみ有効にする
 
 volumes:
   postgres_data:

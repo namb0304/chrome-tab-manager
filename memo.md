@@ -4,3 +4,10 @@
 
 # クライアント シークレット
 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
+
+# フロントエンドでのビルド操作
+cd frontend
+npm run build
+
+
+lcbflkbmmfcmhmmknnodkmknegecfcfa
