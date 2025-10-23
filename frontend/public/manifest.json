@@ -2,9 +2,9 @@
     "manifest_version": 3,
     "name": "タブマネージャー",
     "oauth2": {
-    "client_id": "259161621393-o03dfii4surg86prhosis9gu6a7aj231.apps.googleusercontent.com",
-    "scopes": ["openid", "email", "profile"]
-},
+        "client_id": "259161621393-o03dfii4surg86prhosis9gu6a7aj231.apps.googleusercontent.com",
+        "scopes": ["openid", "email", "profile"]
+    },
     "version": "1.0",
     "description": "Chromeタブをカテゴリ別に整理します。",
     "icons": {
@@ -30,5 +30,11 @@
     "background": {
         "service_worker": "background.js",
         "type": "module"
+    },
+    "externally_connectable": {
+        "matches": [
+            "http://localhost:5175/*",
+            "http://localhost:*/*"
+        ]
     }
 }

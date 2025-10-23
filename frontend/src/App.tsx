@@ -194,42 +194,33 @@ function App() {
 
       const accessToken: string = response.data.access_token;
       
-      localStorage.setItem('accessToken', accessToken); // Webサイト用に保存
+      // 1. まずlocalStorageに保存（Webサイト用）
+      localStorage.setItem('accessToken', accessToken);
       setToken(accessToken);
 
-      console.log('✅ ログイン成功！');
+      console.log('✅ ログイン成功！Webサイトにトークン保存完了');
 
-      // ⭐⭐⭐ 最終修正ポイント: chrome.storage.local に確実に書き込み、ポップアップを更新させる ⭐⭐⭐
+      // 2. 拡張機能のService Workerにトークンを送信
       try {
-        const chromeAPI: typeof chrome | undefined = (window as any).chrome;
-        if (chromeAPI && chromeAPI.storage) {
-          
-          // ポップアップが読み込めるように、ローカルストレージに直接保存 (awaitで確実化)
-          await new Promise<void>(resolve => {
-            chromeAPI.storage.local.set({ 'accessToken': accessToken }, resolve);
-          });
-          console.log('✅ Token saved to chrome.storage.local for pop-up use.');
-          
-          // Service Workerへのメッセージ送信 (安全策)
-          if (chromeAPI.runtime && chromeAPI.runtime.sendMessage) {
-              chromeAPI.runtime.sendMessage(
-                EXTENSION_ID,
-                { action: 'saveToken', token: accessToken },
-                // ⭐ ビルドエラー解消: 引数名を _response に変更
-                (_response: any) => {
-                  if (chromeAPI.runtime.lastError) {
-                    console.log('📌 Service Workerにメッセージが届きません');
-                  } else {
-                    console.log('✅ Service Workerにトークンを同期しました');
-                  }
-                }
-              );
-          }
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          // ⭐ Service Worker経由でchrome.storageに保存
+          chrome.runtime.sendMessage(
+            EXTENSION_ID,
+            { action: 'saveToken', token: accessToken },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error('❌ Service Workerへの通信失敗:', chrome.runtime.lastError.message);
+              } else if (response && response.success) {
+                console.log('✅ 拡張機能ストレージにトークン保存成功:', response);
+              }
+            }
+          );
+        } else {
+          console.log('📌 chrome.runtimeが利用できません（通常のWebページとして動作中）');
         }
       } catch (error) {
-        console.log('📌 Chrome拡張との通信エラー（無視可能）:', error);
+        console.error('❌ 拡張機能との通信エラー:', error);
       }
-      // ⭐⭐⭐ 修正終了 ⭐⭐⭐
 
     } catch (error) {
       console.error('❌ ログイン失敗:', error);

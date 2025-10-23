@@ -128,9 +128,9 @@ app = FastAPI()
 
 # --- CORS設定 (変更なし) ---
 origins = [ 
-    "http://localhost:5173",  # ⭐ 過去の設定 (削除しても良いが残しておく)
-    "http://localhost:5175",  # ⭐ 現在のReact開発サーバーのオリジンを追加
-    "http://127.0.0.1:5175",  # ⭐ 127.0.0.1 も追加
+    "http://localhost:5173", 
+    "http://localhost:5175",  
+    "http://127.0.0.1:5175",  
     "chrome-extension://*" 
 ]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
