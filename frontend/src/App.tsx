@@ -158,6 +158,13 @@ function App() {
   // ⭐ 修正: 拡張機能のストレージからトークンを読み込む処理
   useEffect(() => {
     const checkStorage = async () => {
+        // ⭐⭐ 拡張機能のindex.htmlが直接開かれた場合、localhostにリダイレクト
+        if (window.location.protocol === 'chrome-extension:') {
+            console.log('🔄 拡張機能のページが開かれたため、localhost:5173にリダイレクトします');
+            window.location.replace('http://localhost:5173');
+            return;
+        }
+        
         let storedToken: string | null = null;
         
         // 1. Chrome拡張機能環境の場合、chrome.storageからトークンを取得 (awaitで確実化)
@@ -177,7 +184,7 @@ function App() {
         setIsLoading(false);
     };
     checkStorage();
-  }, []); 
+  }, []);
 
   
   // ログイン成功時の処理
@@ -295,25 +302,30 @@ function App() {
   
   // ⭐⭐ 修正: 拡張機能コンテキストの判定をより安全に修正 ⭐⭐
   const isExtensionContext = typeof (window as any).chrome !== 'undefined' && 
-                            window.chrome.runtime && 
-                            typeof window.chrome.runtime.id === 'string';
-                             
-  if (!token && !isExtensionContext) {
-    // Webサイト（新しいタブ）でトークンがなければ、ログインコンポーネントを表示
-    return LoginComponent;
-  }
-  
-  if (!token && isExtensionContext) {
-      // ポップアップの場合、ログインボタンのロード失敗を避けるため、シンプルなメッセージを出す
-      return (
-          <div className="login-container">
-            <h1>ログインが必要です</h1>
-            <p>設定ページ（新しいタブ）でログインしてください。</p>
-            {/* ⭐ window.chrome.runtime.getURL の型エラーは chrome.d.ts の修正で解消済みのはずです */}
-            <button onClick={() => window.open(window.chrome.runtime.getURL('index.html'))} className="primary-btn">設定ページを開く</button>
-          </div>
-      );
-  }
+                          window.chrome.runtime && 
+                          typeof window.chrome.runtime.id === 'string';
+                           
+if (!token && !isExtensionContext) {
+  // Webサイト（新しいタブ）でトークンがなければ、ログインコンポーネントを表示
+  return LoginComponent;
+}
+
+if (!token && isExtensionContext) {
+    // ポップアップの場合、localhost:5173 の設定ページに誘導
+    return (
+        <div className="login-container">
+          <h1>ログインが必要です</h1>
+          <p>設定ページ（新しいタブ）でログインしてください。</p>
+          {/* ⭐ 修正: localhost:5173 に直接リンク */}
+          <button 
+            onClick={() => window.open('http://localhost:5173', '_blank')} 
+            className="primary-btn"
+          >
+            設定ページを開く
+          </button>
+        </div>
+    );
+}
 
 
   // ログインしている場合の表示
